@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sales Pulse</title>
+  <meta name="description" content="Sales Pulse: control sencillo de ventas con dashboard y objetivo mensual." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><path d='M5 17h5l3-7 5 13 3-6h6' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar__inner">
+      <div class="brand">
+        <span class="brand__logo" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="M5 17h5l3-7 5 13 3-6h6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <div>
+          <h1 class="brand__name">Sales Pulse</h1>
+          <p class="brand__sub" id="current-month">&nbsp;</p>
+        </div>
+      </div>
+      <button class="btn btn--primary" id="btn-new" type="button">
+        <span aria-hidden="true">+</span> Nueva venta
+      </button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- KPIs -->
+    <section class="kpis" aria-label="Indicadores">
+      <article class="kpi">
+        <div class="kpi__icon kpi__icon--indigo" aria-hidden="true">€</div>
+        <p class="kpi__label">Facturación total</p>
+        <p class="kpi__value" id="kpi-revenue">0 €</p>
+      </article>
+      <article class="kpi">
+        <div class="kpi__icon kpi__icon--teal" aria-hidden="true">#</div>
+        <p class="kpi__label">Número de ventas</p>
+        <p class="kpi__value" id="kpi-count">0</p>
+      </article>
+      <article class="kpi">
+        <div class="kpi__icon kpi__icon--amber" aria-hidden="true">Ø</div>
+        <p class="kpi__label">Ticket medio</p>
+        <p class="kpi__value" id="kpi-avg">0 €</p>
+      </article>
+      <article class="kpi">
+        <div class="kpi__icon kpi__icon--rose" aria-hidden="true">◎</div>
+        <p class="kpi__label">Objetivo alcanzado</p>
+        <p class="kpi__value" id="kpi-goal">0 %</p>
+      </article>
+    </section>
+
+    <!-- Objetivo mensual -->
+    <section class="card goal" aria-label="Objetivo mensual">
+      <div class="goal__head">
+        <div>
+          <h2 class="card__title">Objetivo mensual</h2>
+          <p class="muted" id="goal-text">0 € de 50.000 €</p>
+        </div>
+        <span class="badge" id="goal-badge">0 %</span>
+      </div>
+      <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="goal-progress">
+        <div class="progress__bar" id="goal-bar"></div>
+      </div>
+      <p class="muted small" id="goal-remaining"></p>
+    </section>
+
+    <!-- Tabla -->
+    <section class="card" aria-label="Últimas ventas">
+      <div class="card__head">
+        <h2 class="card__title">Últimas ventas</h2>
+        <span class="muted small" id="table-count"></span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Producto</th>
+              <th>Comercial</th>
+              <th class="num">Importe</th>
+              <th>Fecha</th>
+              <th class="actions"><span class="sr-only">Acciones</span></th>
+            </tr>
+          </thead>
+          <tbody id="sales-body"></tbody>
+        </table>
+      </div>
+      <p class="empty" id="empty-state" hidden>Todavía no hay ventas. Pulsa <strong>Nueva venta</strong> para añadir la primera.</p>
+    </section>
+
+    <footer class="footer muted small">
+      Datos guardados localmente en este navegador ·
+      <button class="link" id="btn-reset" type="button">Restaurar datos de ejemplo</button>
+    </footer>
+  </main>
+
+  <!-- Modal nueva venta -->
+  <dialog class="modal" id="sale-modal" aria-labelledby="modal-title">
+    <form class="modal__form" id="sale-form" novalidate>
+      <div class="modal__head">
+        <h2 id="modal-title">Nueva venta</h2>
+        <button class="icon-btn" type="button" id="btn-close" aria-label="Cerrar">✕</button>
+      </div>
+
+      <div class="field">
+        <label for="f-client">Cliente</label>
+        <input id="f-client" name="client" type="text" placeholder="Ej. Acme S.L." required maxlength="80" />
+      </div>
+      <div class="field">
+        <label for="f-product">Producto</label>
+        <input id="f-product" name="product" type="text" placeholder="Ej. Licencia anual" required maxlength="80" />
+      </div>
+      <div class="field">
+        <label for="f-rep">Comercial</label>
+        <input id="f-rep" name="rep" type="text" placeholder="Ej. Laura Gómez" required maxlength="60" list="reps" />
+        <datalist id="reps"></datalist>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="f-amount">Importe (€)</label>
+          <input id="f-amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required />
+        </div>
+        <div class="field">
+          <label for="f-date">Fecha</label>
+          <input id="f-date" name="date" type="date" required />
+        </div>
+      </div>
+
+      <p class="form-error" id="form-error" role="alert" hidden></p>
+
+      <div class="modal__actions">
+        <button class="btn btn--ghost" type="button" id="btn-cancel">Cancelar</button>
+        <button class="btn btn--primary" type="submit">Guardar venta</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
