@@ -216,6 +216,31 @@
   $('btn-cancel').addEventListener('click', closeModal);
   modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
+  // ---------- Confirmación en la propia página ----------
+  const confirmModal = $('confirm-modal');
+  let confirmAction = null;
+  function askConfirm(title, text, okLabel, onConfirm) {
+    $('confirm-title').textContent = title;
+    $('confirm-text').textContent = text;
+    $('confirm-ok').textContent = okLabel;
+    confirmAction = onConfirm;
+    if (typeof confirmModal.showModal === 'function') confirmModal.showModal();
+    else confirmModal.setAttribute('open', '');
+    $('confirm-cancel').focus();
+  }
+  function closeConfirm() {
+    confirmAction = null;
+    if (typeof confirmModal.close === 'function') confirmModal.close();
+    else confirmModal.removeAttribute('open');
+  }
+  $('confirm-cancel').addEventListener('click', closeConfirm);
+  confirmModal.addEventListener('click', (e) => { if (e.target === confirmModal) closeConfirm(); });
+  $('confirm-ok').addEventListener('click', () => {
+    const action = confirmAction;
+    closeConfirm();
+    if (action) action();
+  });
+
   // ---------- Eliminar ----------
   $('sales-body').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-delete]');
@@ -223,20 +248,22 @@
     const id = btn.dataset.delete;
     const sale = sales.find((s) => s.id === id);
     if (!sale) return;
-    if (!confirm(`¿Eliminar la venta de "${sale.client}" por ${eur.format(sale.amount)}?`)) return;
-    sales = sales.filter((s) => s.id !== id);
-    saveSales();
-    render({ animate: true });
-    toast('Venta eliminada');
+    askConfirm('Eliminar venta', `Se eliminará la venta de "${sale.client}" por ${eur.format(sale.amount)}.`, 'Eliminar', () => {
+      sales = sales.filter((s) => s.id !== id);
+      saveSales();
+      render({ animate: true });
+      toast('Venta eliminada');
+    });
   });
 
   // ---------- Restaurar ejemplo ----------
   $('btn-reset').addEventListener('click', () => {
-    if (!confirm('Se borrarán tus ventas y se cargarán los 5 datos de ejemplo. ¿Continuar?')) return;
-    sales = seedSales();
-    saveSales();
-    render({ animate: true });
-    toast('Datos de ejemplo restaurados');
+    askConfirm('Restaurar datos de ejemplo', 'Se borrarán tus ventas y se cargarán las 5 ventas de ejemplo.', 'Restaurar', () => {
+      sales = seedSales();
+      saveSales();
+      render({ animate: true });
+      toast('Datos de ejemplo restaurados');
+    });
   });
 
   // ---------- Inicio ----------

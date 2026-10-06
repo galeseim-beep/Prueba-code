@@ -138,6 +138,18 @@
     </form>
   </dialog>
 
+  <!-- Confirmación -->
+  <dialog class="modal modal--sm" id="confirm-modal" aria-labelledby="confirm-title">
+    <div class="modal__form">
+      <div class="modal__head"><h2 id="confirm-title">¿Seguro?</h2></div>
+      <p class="confirm__text" id="confirm-text"></p>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" type="button" id="confirm-cancel">Cancelar</button>
+        <button class="btn btn--danger" type="button" id="confirm-ok">Eliminar</button>
+      </div>
+    </div>
+  </dialog>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="app.js"></script>
