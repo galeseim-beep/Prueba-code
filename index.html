@@ -2,156 +2,236 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Proyecto Sofá</title>
-  <meta name="description" content="Sales Pulse: control sencillo de ventas con dashboard y objetivo mensual." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%234f46e5'/><path d='M5 17h5l3-7 5 13 3-6h6' fill='none' stroke='white' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/></svg>" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Cómo entrenar a mi dragón</title>
+  <meta name="description" content="La app para gestionar a tu pareja con ayuda de una IA entrenada con todas sus manías." />
+  <meta name="theme-color" content="#ffffff" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%231e3a8a'/><text x='16' y='23' font-size='18' text-anchor='middle'>🐉</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="container topbar__inner">
       <div class="brand">
-        <span class="brand__logo" aria-hidden="true">
-          <svg viewBox="0 0 32 32"><path d="M5 17h5l3-7 5 13 3-6h6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <div>
-          <h1 class="brand__name">PROYECTO SOFÁ</h1>
-          <p class="brand__sub" id="current-month">&nbsp;</p>
+        <span class="brand__logo" aria-hidden="true">🐉</span>
+        <div class="brand__text">
+          <h1 class="brand__name">Cómo entrenar a mi dragón</h1>
+          <p class="brand__sub">Gestión avanzada de parejas · con IA</p>
         </div>
       </div>
-      <button class="btn btn--primary" id="btn-new" type="button">
-        <span aria-hidden="true">+</span> Nueva venta
-      </button>
+      <div class="topbar__actions">
+        <button class="btn btn--panic" id="btn-panic" type="button" title="Botón del pánico">
+          <span aria-hidden="true">🚨</span><span class="hide-sm">Pánico</span>
+        </button>
+        <button class="btn btn--primary" id="btn-new" type="button">
+          <span aria-hidden="true">+</span> Nueva ficha
+        </button>
+      </div>
     </div>
   </header>
 
   <main class="container">
+    <!-- Perfil del dragón -->
+    <section class="card profile" aria-label="Tu dragón">
+      <div class="profile__avatar" aria-hidden="true">🐲</div>
+      <div class="profile__info">
+        <p class="eyebrow">Tu dragón</p>
+        <h2 class="profile__name" id="dragon-name">Álex</h2>
+        <p class="muted small" id="dragon-meta">Especie: <em>Draco sofaensis</em> (pareja común)</p>
+      </div>
+      <div class="profile__side">
+        <span class="mood" id="mood-pill">😌 Tranquilo</span>
+        <button class="btn btn--ghost btn--sm" id="btn-edit" type="button">✏️ Editar dragón</button>
+      </div>
+    </section>
+
     <!-- KPIs -->
     <section class="kpis" aria-label="Indicadores">
       <article class="kpi">
-        <div class="kpi__icon kpi__icon--indigo" aria-hidden="true">€</div>
-        <p class="kpi__label">Facturación total</p>
-        <p class="kpi__value" id="kpi-revenue">0 €</p>
+        <p class="kpi__label">Nivel de domesticación</p>
+        <p class="kpi__value" id="kpi-tame">0 %</p>
+        <p class="kpi__hint">Sube con tesoros, baja con incendios</p>
       </article>
       <article class="kpi">
-        <div class="kpi__icon kpi__icon--teal" aria-hidden="true">#</div>
-        <p class="kpi__label">Número de ventas</p>
-        <p class="kpi__value" id="kpi-count">0</p>
+        <p class="kpi__label">Riesgo de incendio</p>
+        <p class="kpi__value" id="kpi-risk">Bajo</p>
+        <p class="kpi__hint" id="kpi-risk-hint">Según hora y alertas recientes</p>
       </article>
       <article class="kpi">
-        <div class="kpi__icon kpi__icon--amber" aria-hidden="true">Ø</div>
-        <p class="kpi__label">Ticket medio</p>
-        <p class="kpi__value" id="kpi-avg">0 €</p>
+        <p class="kpi__label">Días sin incendio</p>
+        <p class="kpi__value" id="kpi-days">0</p>
+        <p class="kpi__hint">Desde la última alerta de 4🔥 o más</p>
       </article>
       <article class="kpi">
-        <div class="kpi__icon kpi__icon--rose" aria-hidden="true">◎</div>
-        <p class="kpi__label">Objetivo alcanzado</p>
-        <p class="kpi__value" id="kpi-goal">0 %</p>
+        <p class="kpi__label">Puntos de tesoro</p>
+        <p class="kpi__value" id="kpi-points">0</p>
+        <p class="kpi__hint">Sobornos que funcionan</p>
       </article>
     </section>
 
-    <!-- Objetivo mensual -->
-    <section class="card goal" aria-label="Objetivo mensual">
+    <!-- Progreso -->
+    <section class="card goal" aria-label="Objetivo de domesticación">
       <div class="goal__head">
         <div>
-          <h2 class="card__title">Objetivo mensual</h2>
-          <p class="muted" id="goal-text">0 € de 50.000 €</p>
+          <h2 class="card__title">Objetivo: dragón 100 % domesticado</h2>
+          <p class="muted small" id="goal-text"></p>
         </div>
         <span class="badge" id="goal-badge">0 %</span>
       </div>
       <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="goal-progress">
         <div class="progress__bar" id="goal-bar"></div>
       </div>
-      <p class="muted small" id="goal-remaining"></p>
+      <div class="progress__scale small muted" aria-hidden="true">
+        <span>Bestia salvaje</span><span>Mascota de sofá</span>
+      </div>
     </section>
 
-    <!-- Tabla -->
-    <section class="card" aria-label="Últimas ventas">
-      <div class="card__head">
-        <h2 class="card__title">Últimas ventas</h2>
-        <span class="muted small" id="table-count"></span>
-      </div>
+    <div class="grid-2">
+      <!-- IA -->
+      <section class="card ai" aria-label="DragónGPT">
+        <div class="card__head">
+          <h2 class="card__title">🤖 DragónGPT</h2>
+          <span class="chip chip--soft" id="ai-trained">Entrenada con 0 fichas</span>
+        </div>
+        <div class="ai__log" id="ai-log" aria-live="polite"></div>
+        <div class="ai__suggest" id="ai-suggest"></div>
+        <form class="ai__form" id="ai-form">
+          <label class="sr-only" for="ai-input">Pregunta a DragónGPT</label>
+          <input id="ai-input" type="text" placeholder="Pregúntale lo que sea sobre tu dragón…" autocomplete="off" maxlength="200" />
+          <button class="btn btn--primary" type="submit">Preguntar</button>
+        </form>
+        <p class="muted tiny">IA simulada en tu navegador: no envía nada a ningún sitio.</p>
+      </section>
 
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Cliente</th>
-              <th>Producto</th>
-              <th>Comercial</th>
-              <th class="num">Importe</th>
-              <th>Fecha</th>
-              <th class="actions"><span class="sr-only">Acciones</span></th>
-            </tr>
-          </thead>
-          <tbody id="sales-body"></tbody>
-        </table>
+      <!-- Categorías -->
+      <section class="card" aria-label="Categorías">
+        <div class="card__head">
+          <h2 class="card__title">Categorías</h2>
+          <span class="muted small">Toca una para filtrar</span>
+        </div>
+        <div class="cats" id="cats"></div>
+      </section>
+    </div>
+
+    <!-- Fichas -->
+    <section class="card" aria-label="Fichas de entrenamiento">
+      <div class="card__head">
+        <h2 class="card__title">Fichas de entrenamiento</h2>
+        <span class="muted small" id="list-count"></span>
       </div>
-      <p class="empty" id="empty-state" hidden>Todavía no hay ventas. Pulsa <strong>Nueva venta</strong> para añadir la primera.</p>
+      <div class="filters" id="filters" role="tablist" aria-label="Filtrar por categoría"></div>
+      <ul class="entries" id="entries"></ul>
+      <p class="empty" id="empty-state" hidden>No hay fichas aquí. Pulsa <strong>Nueva ficha</strong> y enséñale algo a la IA.</p>
     </section>
 
     <footer class="footer muted small">
-      Datos guardados localmente en este navegador ·
-      <button class="link" id="btn-reset" type="button">Restaurar datos de ejemplo</button>
+      Datos guardados solo en este navegador ·
+      <button class="link" id="btn-reset" type="button">Restaurar dragón de ejemplo</button>
     </footer>
   </main>
 
-  <!-- Modal nueva venta -->
-  <dialog class="modal" id="sale-modal" aria-labelledby="modal-title">
-    <form class="modal__form" id="sale-form" novalidate>
+  <!-- Modal nueva ficha -->
+  <dialog class="modal" id="entry-modal" aria-labelledby="entry-title">
+    <form class="modal__body" id="entry-form" novalidate>
       <div class="modal__head">
-        <h2 id="modal-title">Nueva venta</h2>
-        <button class="icon-btn" type="button" id="btn-close" aria-label="Cerrar">✕</button>
+        <h2 id="entry-title">Nueva ficha</h2>
+        <button class="icon-btn" type="button" data-close aria-label="Cerrar">✕</button>
       </div>
 
+      <fieldset class="field">
+        <legend>Categoría</legend>
+        <div class="cat-pick" id="cat-pick"></div>
+      </fieldset>
       <div class="field">
-        <label for="f-client">Cliente</label>
-        <input id="f-client" name="client" type="text" placeholder="Ej. Acme S.L." required maxlength="80" />
+        <label for="f-title">¿Qué has descubierto?</label>
+        <input id="f-title" name="title" type="text" placeholder="Ej. Si no desayuna, no habla" required maxlength="80" />
       </div>
       <div class="field">
-        <label for="f-product">Producto</label>
-        <input id="f-product" name="product" type="text" placeholder="Ej. Licencia anual" required maxlength="80" />
-      </div>
-      <div class="field">
-        <label for="f-rep">Comercial</label>
-        <input id="f-rep" name="rep" type="text" placeholder="Ej. Laura Gómez" required maxlength="60" list="reps" />
-        <datalist id="reps"></datalist>
+        <label for="f-note">Instrucciones para la IA <span class="muted">(opcional)</span></label>
+        <textarea id="f-note" name="note" rows="3" maxlength="240" placeholder="Ej. Ofrecer café antes de cualquier conversación seria."></textarea>
       </div>
       <div class="field-row">
-        <div class="field">
-          <label for="f-amount">Importe (€)</label>
-          <input id="f-amount" name="amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="0,00" required />
-        </div>
+        <fieldset class="field">
+          <legend>Intensidad</legend>
+          <div class="flames" id="flames">
+            <input type="radio" name="level" id="lv1" value="1" /><label for="lv1" title="1">🔥</label>
+            <input type="radio" name="level" id="lv2" value="2" /><label for="lv2" title="2">🔥</label>
+            <input type="radio" name="level" id="lv3" value="3" checked /><label for="lv3" title="3">🔥</label>
+            <input type="radio" name="level" id="lv4" value="4" /><label for="lv4" title="4">🔥</label>
+            <input type="radio" name="level" id="lv5" value="5" /><label for="lv5" title="5">🔥</label>
+          </div>
+        </fieldset>
         <div class="field">
           <label for="f-date">Fecha</label>
           <input id="f-date" name="date" type="date" required />
         </div>
       </div>
-
       <p class="form-error" id="form-error" role="alert" hidden></p>
-
       <div class="modal__actions">
-        <button class="btn btn--ghost" type="button" id="btn-cancel">Cancelar</button>
-        <button class="btn btn--primary" type="submit">Guardar venta</button>
+        <button class="btn btn--ghost" type="button" data-close>Cancelar</button>
+        <button class="btn btn--primary" type="submit">Guardar ficha</button>
       </div>
     </form>
   </dialog>
 
-  <!-- Confirmación -->
-  <dialog class="modal modal--sm" id="confirm-modal" aria-labelledby="confirm-title">
-    <div class="modal__form">
-      <div class="modal__head"><h2 id="confirm-title">¿Seguro?</h2></div>
-      <p class="confirm__text" id="confirm-text"></p>
+  <!-- Modal pánico -->
+  <dialog class="modal modal--sm" id="panic-modal" aria-labelledby="panic-title">
+    <div class="modal__body">
+      <div class="modal__head">
+        <h2 id="panic-title">🚨 Protocolo de emergencia</h2>
+        <button class="icon-btn" type="button" data-close aria-label="Cerrar">✕</button>
+      </div>
+      <p class="muted small" id="panic-intro"></p>
+      <ol class="panic-steps" id="panic-steps"></ol>
       <div class="modal__actions">
-        <button class="btn btn--ghost" type="button" id="confirm-cancel">Cancelar</button>
+        <button class="btn btn--ghost" type="button" id="panic-again">🎲 Otro protocolo</button>
+        <button class="btn btn--primary" type="button" data-close>Sobreviví</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- Modal editar dragón -->
+  <dialog class="modal modal--sm" id="edit-modal" aria-labelledby="edit-title">
+    <form class="modal__body" id="edit-form" novalidate>
+      <div class="modal__head">
+        <h2 id="edit-title">Editar dragón</h2>
+        <button class="icon-btn" type="button" data-close aria-label="Cerrar">✕</button>
+      </div>
+      <div class="field">
+        <label for="f-name">Nombre de tu dragón</label>
+        <input id="f-name" type="text" maxlength="30" required />
+      </div>
+      <div class="field">
+        <label for="f-pron">Se le trata como</label>
+        <select id="f-pron">
+          <option value="o">Él (dragón)</option>
+          <option value="a">Ella (dragona)</option>
+          <option value="e">Elle (dragone)</option>
+        </select>
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" type="button" data-close>Cancelar</button>
+        <button class="btn btn--primary" type="submit">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal confirmación -->
+  <dialog class="modal modal--sm" id="confirm-modal" aria-labelledby="confirm-title">
+    <div class="modal__body">
+      <div class="modal__head"><h2 id="confirm-title">¿Seguro?</h2></div>
+      <p class="muted" id="confirm-text"></p>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" type="button" data-close>Cancelar</button>
         <button class="btn btn--danger" type="button" id="confirm-ok">Eliminar</button>
       </div>
     </div>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
   <script src="app.js"></script>
 </body>
 </html>

@@ -1,34 +1,28 @@
-# Sales Pulse
+# Cómo entrenar a mi dragón
 
-Aplicación web ligera para controlar ventas: dashboard con indicadores, objetivo mensual de 50.000 €, tabla de últimas ventas, alta y eliminación de ventas. Todo en el navegador: sin backend, sin base de datos, sin dependencias.
+App web ligera para "gestionar" a tu pareja (el dragón) con ayuda de una IA entrenada con sus fichas. Datos de ejemplo ficticios. Sin backend, sin base de datos y sin APIs externas: todo funciona en el navegador y se guarda en `localStorage`.
+
+Publicada en GitHub Pages: https://galeseim-beep.github.io/Prueba-code/
+
+## Qué incluye
+
+- **Perfil del dragón** editable (nombre y trato: él / ella / elle) con su estado de ánimo actual.
+- **4 indicadores**: nivel de domesticación, riesgo de incendio (según la hora y las alertas recientes), días sin incendio y puntos de tesoro.
+- **Barra de objetivo**: de "Bestia salvaje" a "Mascota de sofá".
+- **DragónGPT**: asistente que responde usando las fichas registradas. Es una IA de demostración que funciona en local, sin enviar datos.
+- **4 categorías**: Modo hambre, Alertas de humo, Territorio y cueva, Tesoros y sobornos. Al tocarlas se filtra la lista.
+- **Fichas de entrenamiento**: alta con categoría, descripción, instrucciones para la IA, intensidad (1-5 🔥) y fecha; eliminación con confirmación.
+- **Botón del pánico**: genera un protocolo de emergencia a partir de las fichas.
+- **Restaurar dragón de ejemplo** desde el pie de página.
 
 ## Cómo ejecutarla
 
-Opción 1: abre `index.html` con doble clic en cualquier navegador moderno.
-
-Opción 2: con un servidor estático local:
-
-```bash
-python3 -m http.server 8000
-# luego abre http://localhost:8000
-```
-
-## Funcionalidades
-
-- **4 indicadores**: facturación total, número de ventas, ticket medio y % del objetivo alcanzado.
-- **Objetivo mensual** de 50.000 € con barra de progreso (cuenta las ventas del mes en curso).
-- **Tabla de últimas ventas** (cliente, producto, comercial, importe, fecha), ordenada por fecha. En móvil se muestra como tarjetas.
-- **Nueva venta**: formulario con validación; los indicadores se actualizan al instante.
-- **Eliminar venta** con confirmación.
-- **5 ventas de ejemplo** cargadas la primera vez (fechadas en el mes actual).
-- **Persistencia en `localStorage`**. El enlace "Restaurar datos de ejemplo" del pie vuelve al estado inicial.
+Abre `index.html` en el navegador, o sirve la carpeta con `python3 -m http.server 8000`.
 
 ## Estructura
 
 ```
-index.html   # Maquetación
-styles.css   # Estilos (responsive)
-app.js       # Lógica, cálculo de indicadores y localStorage
+index.html   # Maquetación y diálogos
+styles.css   # Estilos (responsive, tema claro)
+app.js       # Datos, indicadores, IA local y localStorage
 ```
-
-El objetivo mensual se cambia en la constante `MONTHLY_GOAL` de `app.js`.
