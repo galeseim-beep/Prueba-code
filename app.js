@@ -288,7 +288,12 @@
 
   // ---------- Restaurar ----------
   $('btn-reset').addEventListener('click', () => {
-    askConfirm('Restaurar dragón de ejemplo', 'Se borrarán tus fichas y se cargará el dragón de ejemplo.', 'Restaurar', () => {
+    askConfirm('Restaurar dragón de ejemplo', 'Se borrarán tus fichas y facturas y se cargará el dragón de ejemplo.', 'Restaurar', () => {
+      invoices.filter((i) => !i.sample).forEach((i) => idb.del(i.id));
+      invoices.forEach((i) => dropPhotoUrl(i.id));
+      invoices = seedInvoices();
+      saveInvoices();
+      renderInvoices();
       entries = seedEntries();
       profile = { ...DEFAULT_PROFILE };
       filter = 'all';
@@ -342,6 +347,7 @@
   };
 
   function answer(q) {
+    if (/(gast|dinero|factur|cuest|pag|euro|€|cuánto me|cuanto me)/i.test(q)) return moneyAnswer();
     const hits = INTENTS.filter((it) => it.re.test(q)).map((it) => it.cat);
     const cats = hits.length ? [...new Set(hits)] : [pick(CAT_KEYS)];
     const used = [];
@@ -388,7 +394,7 @@
     addMsg('ai', a.text, a.source);
   }
 
-  const SUGGESTIONS = ['¿Qué pedimos de cena?', 'Está muy callad?, ¿qué hago?', '¿Qué le regalo?', '¿Puedo ver el fútbol hoy?', 'Le he hecho spoiler, ayuda'];
+  const SUGGESTIONS = ['¿Qué pedimos de cena?', '¿Cuánto llevo gastado este mes?', 'Está muy callad?, ¿qué hago?', '¿Qué le regalo?', '¿Puedo ver el fútbol hoy?', 'Le he hecho spoiler, ayuda'];
   function renderSuggestions() {
     $('ai-suggest').innerHTML = SUGGESTIONS.map((s) => s.replace('?,', `${profile.pron},`))
       .map((s) => `<button class="chip" type="button" data-q="${escapeHTML(s)}">${escapeHTML(s)}</button>`).join('');
@@ -396,8 +402,308 @@
   $('ai-suggest').addEventListener('click', (e) => { const b = e.target.closest('[data-q]'); if (b) ask(b.dataset.q); });
   $('ai-form').addEventListener('submit', (e) => { e.preventDefault(); ask($('ai-input').value); $('ai-input').value = ''; });
 
+  // ---------- Facturas ----------
+  const INV_KEY = 'dragon.invoices.v1';
+  const INV_CATS = {
+    hambre:  'Comida y antojos',
+    humo:    'Apagar incendios',
+    cueva:   'Casa y cueva',
+    tesoros: 'Regalos y tesoros',
+  };
+  const eur = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' });
+
+  // Las fotos van a IndexedDB (más espacio que localStorage); los datos, a localStorage.
+  const idb = (() => {
+    let dbp;
+    const open = () => dbp || (dbp = new Promise((res, rej) => {
+      if (!('indexedDB' in window)) return rej(new Error('IndexedDB no disponible'));
+      const r = indexedDB.open('dragon-db', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('photos');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => rej(r.error);
+    }));
+    const tx = (mode, fn) => open().then((db) => new Promise((res, rej) => {
+      const t = db.transaction('photos', mode);
+      const req = fn(t.objectStore('photos'));
+      t.oncomplete = () => res(req && req.result);
+      t.onerror = () => rej(t.error);
+      t.onabort = () => rej(t.error);
+    }));
+    return {
+      put: (id, blob) => tx('readwrite', (s) => s.put(blob, id)),
+      get: (id) => tx('readonly', (s) => s.get(id)),
+      del: (id) => tx('readwrite', (s) => s.delete(id)).catch(() => {}),
+    };
+  })();
+
+  // Tickets de ejemplo dibujados al vuelo (no ocupan almacenamiento)
+  function drawReceipt({ shop, lines, date }) {
+    const c = document.createElement('canvas');
+    c.width = 400; c.height = 500;
+    const x = c.getContext('2d');
+    x.fillStyle = '#eef0f5'; x.fillRect(0, 0, 400, 500);
+    x.save(); x.translate(200, 250); x.rotate(-0.025); x.translate(-200, -250);
+    x.fillStyle = '#ffffff'; x.shadowColor = 'rgba(0,0,0,.15)'; x.shadowBlur = 14; x.fillRect(50, 24, 300, 452); x.shadowBlur = 0;
+    x.fillStyle = '#1b1f2e'; x.textAlign = 'center';
+    x.font = 'bold 22px Courier New, monospace'; x.fillText(shop.toUpperCase(), 200, 72);
+    x.font = '13px Courier New, monospace'; x.fillStyle = '#555';
+    x.fillText('FACTURA SIMPLIFICADA', 200, 96); x.fillText(date, 200, 114);
+    x.strokeStyle = '#999'; x.setLineDash([4, 4]); x.beginPath(); x.moveTo(70, 132); x.lineTo(330, 132); x.stroke();
+    x.textAlign = 'left'; x.fillStyle = '#1b1f2e'; x.font = '15px Courier New, monospace';
+    let y = 162, total = 0;
+    lines.forEach(([name, price]) => {
+      x.fillText(name, 70, y); x.textAlign = 'right'; x.fillText(price.toFixed(2).replace('.', ','), 330, y); x.textAlign = 'left';
+      total += price; y += 28;
+    });
+    x.beginPath(); x.moveTo(70, y - 8); x.lineTo(330, y - 8); x.stroke();
+    x.font = 'bold 20px Courier New, monospace'; x.fillText('TOTAL', 70, y + 22);
+    x.textAlign = 'right'; x.fillText(`${total.toFixed(2).replace('.', ',')} €`, 330, y + 22);
+    x.textAlign = 'center'; x.font = '12px Courier New, monospace'; x.fillStyle = '#777';
+    x.fillText('IVA incluido · Gracias por su visita', 200, 440);
+    x.restore();
+    return c.toDataURL('image/jpeg', 0.85);
+  }
+
+  function seedInvoices() {
+    return [
+      { cat: 'hambre',  concept: 'Cena de emergencia (modo hambre)', date: daysAgo(2),  shop: 'Pizzería Da Marco',    lines: [['Pizza diávola', 14.5], ['Pizza 4 quesos', 13.0], ['Patatas (doble)', 5.0]] },
+      { cat: 'humo',    concept: 'Flores tras un «no pasa nada»',    date: daysAgo(6),  shop: 'Floristería La Rosa', lines: [['Ramo grande', 38.0], ['Tarjeta', 2.5], ['Envoltorio', 4.5]] },
+      { cat: 'tesoros', concept: 'Croquetas de soborno',             date: daysAgo(4),  shop: 'Croquetería Pepa',    lines: [['Croquetas jamón x12', 12.0], ['Croquetas boletus x6', 6.75]] },
+      { cat: 'cueva',   concept: 'Otra manta (esta vez para ti)',    date: daysAgo(12), shop: 'Hogar Nórdico',       lines: [['Manta polar gris', 49.9], ['Cojín', 10.0]] },
+    ].map((r, i) => ({
+      id: `inv-seed-${i + 1}`, sample: true, createdAt: Date.now() - i * 1000,
+      cat: r.cat, concept: r.concept, date: r.date, shop: r.shop, lines: r.lines,
+      amount: Math.round(r.lines.reduce((s, l) => s + l[1], 0) * 100) / 100,
+    }));
+  }
+
+  let invoices = load(INV_KEY, seedInvoices, Array.isArray);
+  const saveInvoices = () => {
+    try { localStorage.setItem(INV_KEY, JSON.stringify(invoices)); return true; } catch (_) { return false; }
+  };
+  saveInvoices();
+
+  const photoUrls = new Map();
+  async function photoUrl(inv) {
+    if (photoUrls.has(inv.id)) return photoUrls.get(inv.id);
+    let url = '';
+    if (inv.sample) url = drawReceipt({ shop: inv.shop, lines: inv.lines, date: dateFmt.format(parseISO(inv.date)) });
+    else {
+      try { const blob = await idb.get(inv.id); if (blob) url = URL.createObjectURL(blob); } catch (_) { /* sin foto */ }
+    }
+    photoUrls.set(inv.id, url);
+    return url;
+  }
+  const dropPhotoUrl = (id) => {
+    const u = photoUrls.get(id);
+    if (u && u.startsWith('blob:')) URL.revokeObjectURL(u);
+    photoUrls.delete(id);
+  };
+
+  const isThisMonth = (iso) => { const d = parseISO(iso), n = new Date(); return d.getFullYear() === n.getFullYear() && d.getMonth() === n.getMonth(); };
+
+  function renderInvoices(highlightId) {
+    const total = invoices.reduce((s, i) => s + i.amount, 0);
+    const month = invoices.filter((i) => isThisMonth(i.date)).reduce((s, i) => s + i.amount, 0);
+    $('inv-total').textContent = eur.format(total);
+    $('inv-month').textContent = eur.format(month);
+    $('inv-count').textContent = String(invoices.length);
+    $('inv-avg').textContent = eur.format(invoices.length ? total / invoices.length : 0);
+
+    const byCat = CAT_KEYS.map((k) => [k, invoices.filter((i) => i.cat === k).reduce((s, i) => s + i.amount, 0)]);
+    const max = Math.max(1, ...byCat.map(([, v]) => v));
+    $('inv-break').innerHTML = byCat.map(([k, v]) => `
+      <div class="inv-bar" data-cat="${k}">
+        <span class="inv-bar__name">${CATS[k].icon} ${INV_CATS[k]}</span>
+        <span class="inv-bar__track"><span class="inv-bar__fill" style="width:${(v / max) * 100}%"></span></span>
+        <span class="inv-bar__val">${eur.format(v)}</span>
+      </div>`).join('');
+
+    const rows = [...invoices].sort((a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt);
+    $('inv-grid').innerHTML = rows.map((i) => `
+      <button class="inv ${i.id === highlightId ? 'row-new' : ''}" type="button" data-inv="${escapeHTML(i.id)}" data-cat="${i.cat}">
+        <img class="inv__img" alt="Foto de la factura: ${escapeHTML(i.concept)}" data-photo="${escapeHTML(i.id)}" />
+        <span class="inv__body">
+          <span class="inv__amount">${eur.format(i.amount)}</span>
+          <span class="inv__concept">${escapeHTML(i.concept)}</span>
+          <span class="inv__meta"><span class="tag">${INV_CATS[i.cat]}</span><span>${dateFmt.format(parseISO(i.date))}</span></span>
+        </span>
+      </button>`).join('');
+    $('inv-empty').hidden = rows.length > 0;
+    rows.forEach((i) => photoUrl(i).then((u) => {
+      const img = $('inv-grid').querySelector(`[data-photo="${CSS.escape(i.id)}"]`);
+      if (img && u) img.src = u;
+    }));
+  }
+
+  // Comprime la foto (máx. 1400 px, JPEG) para que quepan muchas
+  function compressImage(file) {
+    return new Promise((res, rej) => {
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, 1400 / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * scale);
+        c.height = Math.round(img.naturalHeight * scale);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        c.toBlob((b) => (b ? res(b) : rej(new Error('No se pudo procesar la imagen'))), 'image/jpeg', 0.75);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Formato de imagen no compatible')); };
+      img.src = url;
+    });
+  }
+
+  const invForm = $('inv-form');
+  let pendingPhoto = null;
+  let previewUrl = '';
+  $('inv-cat-pick').innerHTML = CAT_KEYS.map((k, i) => `
+    <span data-cat="${k}"><input type="radio" name="invcat" id="invcat-${k}" value="${k}" ${i === 0 ? 'checked' : ''} /><label for="invcat-${k}">${CATS[k].icon} ${INV_CATS[k]}</label></span>`).join('');
+
+  function setPreview(blob) {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    previewUrl = blob ? URL.createObjectURL(blob) : '';
+    $('photo-preview').src = previewUrl;
+    $('photo-preview').hidden = !blob;
+    $('photo-empty').hidden = !!blob;
+    $('photo-drop').classList.toggle('has-photo', !!blob);
+  }
+  const invError = (msg) => { $('inv-error').textContent = msg; $('inv-error').hidden = !msg; };
+
+  $('btn-invoice').addEventListener('click', () => {
+    invForm.reset();
+    pendingPhoto = null;
+    setPreview(null);
+    invError('');
+    invForm.querySelectorAll('.invalid').forEach((el) => el.classList.remove('invalid'));
+    $('f-inv-date').value = toISO(new Date());
+    openModal($('inv-modal'));
+  });
+
+  invForm.addEventListener('input', (e) => { e.target.classList.remove('invalid'); invError(''); });
+  $('f-photo').addEventListener('change', async () => {
+    const file = $('f-photo').files[0];
+    if (!file) return;
+    invError('');
+    $('photo-drop').classList.remove('invalid');
+    try {
+      pendingPhoto = await compressImage(file);
+      setPreview(pendingPhoto);
+      $('f-amount').focus();
+    } catch (err) {
+      pendingPhoto = null;
+      setPreview(null);
+      invError(`${err.message}. Prueba con una foto JPG o PNG.`);
+    }
+  });
+
+  invForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const amount = Math.round(parseFloat($('f-amount').value.replace(/\s|€/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.')) * 100) / 100;
+    const concept = $('f-concept').value.trim();
+    const date = $('f-inv-date').value;
+    const cat = invForm.querySelector('input[name="invcat"]:checked')?.value;
+    const bad = [];
+    if (!pendingPhoto) bad.push('photo-drop');
+    if (!(amount > 0)) bad.push('f-amount');
+    if (!concept) bad.push('f-concept');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) bad.push('f-inv-date');
+    ['photo-drop', 'f-amount', 'f-concept', 'f-inv-date'].forEach((id) => $(id).classList.toggle('invalid', bad.includes(id)));
+    if (bad.length) {
+      invError(!pendingPhoto ? 'Añade la foto de la factura.' : 'Revisa los campos marcados: importe mayor que 0, concepto y fecha.');
+      return;
+    }
+    const inv = { id: (crypto.randomUUID && crypto.randomUUID()) || `inv-${Date.now()}`, createdAt: Date.now(), cat, concept, date, amount };
+    $('inv-save').disabled = true;
+    try {
+      await idb.put(inv.id, pendingPhoto);
+    } catch (_) {
+      $('inv-save').disabled = false;
+      invError('No hay espacio para guardar la foto en este navegador. Elimina alguna factura antigua e inténtalo de nuevo.');
+      return;
+    }
+    invoices.push(inv);
+    if (!saveInvoices()) {
+      invoices.pop();
+      idb.del(inv.id);
+      $('inv-save').disabled = false;
+      invError('No se pudo guardar la factura. Libera espacio e inténtalo de nuevo.');
+      return;
+    }
+    $('inv-save').disabled = false;
+    closeModal($('inv-modal'));
+    setPreview(null);
+    renderInvoices(inv.id);
+    toast(`Factura guardada: ${eur.format(amount)}`);
+  });
+
+  // Ver / eliminar
+  let viewing = null;
+  $('inv-grid').addEventListener('click', async (e) => {
+    const card = e.target.closest('[data-inv]');
+    if (!card) return;
+    const inv = invoices.find((i) => i.id === card.dataset.inv);
+    if (!inv) return;
+    viewing = inv;
+    $('inv-view-title').textContent = inv.concept;
+    $('inv-view-img').alt = `Factura: ${inv.concept}`;
+    $('inv-view-img').src = await photoUrl(inv);
+    $('inv-view-meta').innerHTML = `
+      <dt>Importe</dt><dd>${eur.format(inv.amount)}</dd>
+      <dt>Fecha</dt><dd>${dateFmt.format(parseISO(inv.date))}</dd>
+      <dt>Categoría</dt><dd>${CATS[inv.cat].icon} ${INV_CATS[inv.cat]}</dd>
+      ${inv.sample ? '<dt>Origen</dt><dd>Factura de ejemplo</dd>' : ''}`;
+    openModal($('inv-view'));
+  });
+  $('inv-delete').addEventListener('click', () => {
+    const inv = viewing;
+    if (!inv) return;
+    closeModal($('inv-view'));
+    askConfirm('Eliminar factura', `Se eliminará «${inv.concept}» por ${eur.format(inv.amount)}, con su foto.`, 'Eliminar', () => {
+      invoices = invoices.filter((i) => i.id !== inv.id);
+      saveInvoices();
+      if (!inv.sample) idb.del(inv.id);
+      dropPhotoUrl(inv.id);
+      renderInvoices();
+      toast('Factura eliminada');
+    });
+  });
+
+  // Exportar CSV (abre bien en Excel y Numbers)
+  $('btn-csv').addEventListener('click', () => {
+    if (!invoices.length) { toast('No hay facturas que exportar'); return; }
+    const q = (v) => `"${String(v).replace(/"/g, '""')}"`;
+    const rows = [['Fecha', 'Concepto', 'Categoría', 'Importe (€)']]
+      .concat([...invoices].sort((a, b) => a.date.localeCompare(b.date))
+        .map((i) => [i.date, i.concept, INV_CATS[i.cat], i.amount.toFixed(2).replace('.', ',')]));
+    rows.push(['', '', 'TOTAL', invoices.reduce((s, i) => s + i.amount, 0).toFixed(2).replace('.', ',')]);
+    const csv = '﻿' + rows.map((r) => r.map(q).join(';')).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    a.download = `facturas-${toISO(new Date())}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  });
+
+  function moneyAnswer() {
+    if (!invoices.length) return { text: 'Aún no hay facturas registradas. Súbelas con «Subir factura» y te digo cuánto cuesta mantener a tu dragón.', source: '' };
+    const month = invoices.filter((i) => isThisMonth(i.date)).reduce((s, i) => s + i.amount, 0);
+    const byCat = CAT_KEYS.map((k) => [k, invoices.filter((i) => i.cat === k).reduce((s, i) => s + i.amount, 0)]).sort((a, b) => b[1] - a[1]);
+    const [topK, topV] = byCat[0];
+    const fire = byCat.find(([k]) => k === 'humo')[1];
+    return {
+      text: `🧾 Este mes llevas ${eur.format(month)} en ${profile.name}. La partida más cara es «${INV_CATS[topK]}» (${eur.format(topV)}).` +
+        (fire ? `\n\nApagar incendios te ha costado ${eur.format(fire)}. Prevenir sale más barato: revisa sus alertas de humo.` : '') +
+        '\n\n👉 Un tesoro a tiempo ahorra un ramo de flores.',
+      source: `Basado en ${invoices.length} factura${invoices.length > 1 ? 's' : ''}`,
+    };
+  }
+
   // ---------- Inicio ----------
   render();
+  renderInvoices();
   renderSuggestions();
   resetChat();
   // Las sugerencias dependen del género gramatical del dragón

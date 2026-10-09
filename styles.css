@@ -28,6 +28,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 html, body { margin: 0; background: var(--bg); }
 body {
   font-family: var(--font-body);
@@ -243,6 +244,48 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--n
 }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+/* ---------- Facturas ---------- */
+.card__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.inv-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.inv-kpi { background: var(--bg); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+.inv-kpi__value { margin: 2px 0 0; font-family: var(--font-display); font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv-break { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.inv-bar { display: grid; grid-template-columns: minmax(0, 170px) minmax(0, 1fr) auto; align-items: center; gap: 10px; font-size: 13px; }
+.inv-bar__name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv-bar__track { display: block; height: 10px; border-radius: 999px; background: #eceef5; overflow: hidden; }
+.inv-bar__fill { display: block; height: 100%; border-radius: inherit; background: var(--cat); transition: width .5s ease; }
+.inv-bar__val { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 72px; text-align: right; }
+.inv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.inv {
+  display: flex; flex-direction: column; text-align: left; padding: 0; overflow: hidden; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 14px; background: var(--surface); font: inherit; color: inherit; min-width: 0;
+  transition: box-shadow .15s, transform .15s;
+}
+.inv:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+.inv:focus-visible { outline: 3px solid rgba(30, 58, 138, .3); outline-offset: 2px; }
+.inv__img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; background: var(--bg); display: block; max-width: 100%; }
+.inv__body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.inv__amount { font-family: var(--font-display); font-weight: 800; font-size: 18px; font-variant-numeric: tabular-nums; }
+.inv__concept { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.inv__meta { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.inv__meta .tag { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.inv__meta > span:last-child { white-space: nowrap; flex: none; }
+.photo-drop {
+  display: grid; place-items: center; min-height: 170px; margin-bottom: 14px; cursor: pointer; overflow: hidden;
+  border: 2px dashed var(--border); border-radius: 14px; background: var(--bg); text-align: center;
+  transition: border-color .15s;
+}
+.photo-drop:hover, .photo-drop.has-photo { border-color: var(--navy); }
+.photo-drop.invalid { border-color: var(--danger); }
+.photo-drop img { width: 100%; max-height: 260px; object-fit: contain; display: block; }
+.photo-drop__empty { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 16px; }
+.photo-drop__icon { font-size: 34px; }
+#f-photo:focus-visible + .photo-drop { outline: 3px solid rgba(30, 58, 138, .3); }
+.inv-view__img { width: 100%; max-height: 60vh; object-fit: contain; border-radius: 12px; background: var(--bg); display: block; }
+.inv-view__meta { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; margin: 14px 0 0; font-size: 14px; }
+.inv-view__meta dt { color: var(--muted); }
+.inv-view__meta dd { margin: 0; font-weight: 600; }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
 /* ---------- Responsive ---------- */
@@ -270,4 +313,10 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--n
   .cats { gap: 8px; }
   .cat { padding: 12px; }
   .field-row { grid-template-columns: 1fr; gap: 0; }
+  .inv-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .inv-kpi__value { font-size: 19px; }
+  .inv-bar { grid-template-columns: minmax(0, 110px) minmax(0, 1fr) auto; }
+  .inv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .card__actions { width: 100%; }
+  .card__actions .btn { flex: 1; }
 }

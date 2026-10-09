@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=dragon-1" />
+  <link rel="stylesheet" href="styles.css?v=dragon-2" />
 </head>
 <body>
   <header class="topbar">
@@ -116,6 +116,26 @@
       </section>
     </div>
 
+    <!-- Facturas -->
+    <section class="card" id="invoices" aria-label="Facturas y gastos">
+      <div class="card__head">
+        <h2 class="card__title">🧾 Facturas y gastos</h2>
+        <div class="card__actions">
+          <button class="btn btn--ghost btn--sm" id="btn-csv" type="button">⬇️ Exportar CSV</button>
+          <button class="btn btn--primary btn--sm" id="btn-invoice" type="button">📷 Subir factura</button>
+        </div>
+      </div>
+      <div class="inv-kpis">
+        <div class="inv-kpi"><p class="kpi__label">Total gastado</p><p class="inv-kpi__value" id="inv-total">0 €</p></div>
+        <div class="inv-kpi"><p class="kpi__label">Este mes</p><p class="inv-kpi__value" id="inv-month">0 €</p></div>
+        <div class="inv-kpi"><p class="kpi__label">Facturas</p><p class="inv-kpi__value" id="inv-count">0</p></div>
+        <div class="inv-kpi"><p class="kpi__label">Importe medio</p><p class="inv-kpi__value" id="inv-avg">0 €</p></div>
+      </div>
+      <div class="inv-break" id="inv-break" aria-label="Gasto por categoría"></div>
+      <div class="inv-grid" id="inv-grid"></div>
+      <p class="empty" id="inv-empty" hidden>Aún no hay facturas. Pulsa <strong>Subir factura</strong> y hazle una foto al ticket.</p>
+    </section>
+
     <!-- Fichas -->
     <section class="card" aria-label="Fichas de entrenamiento">
       <div class="card__head">
@@ -219,6 +239,64 @@
     </form>
   </dialog>
 
+  <!-- Modal subir factura -->
+  <dialog class="modal" id="inv-modal" aria-labelledby="inv-title">
+    <form class="modal__body" id="inv-form" novalidate>
+      <div class="modal__head">
+        <h2 id="inv-title">Subir factura</h2>
+        <button class="icon-btn" type="button" data-close aria-label="Cerrar">✕</button>
+      </div>
+      <input id="f-photo" type="file" accept="image/*" class="sr-only" />
+      <label class="photo-drop" for="f-photo" id="photo-drop">
+        <img id="photo-preview" alt="Vista previa de la factura" hidden />
+        <span class="photo-drop__empty" id="photo-empty">
+          <span class="photo-drop__icon" aria-hidden="true">📷</span>
+          <strong>Hacer foto o elegir imagen</strong>
+          <span class="muted small">JPG, PNG o foto del iPhone</span>
+        </span>
+      </label>
+      <div class="field-row">
+        <div class="field">
+          <label for="f-amount">Importe (€)</label>
+          <input id="f-amount" type="text" inputmode="decimal" placeholder="0,00" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label for="f-inv-date">Fecha</label>
+          <input id="f-inv-date" type="date" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-concept">Concepto</label>
+        <input id="f-concept" type="text" maxlength="80" placeholder="Ej. Cena de emergencia" />
+      </div>
+      <fieldset class="field">
+        <legend>Categoría del gasto</legend>
+        <div class="cat-pick" id="inv-cat-pick"></div>
+      </fieldset>
+      <p class="form-error" id="inv-error" role="alert" hidden></p>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" type="button" data-close>Cancelar</button>
+        <button class="btn btn--primary" type="submit" id="inv-save">Guardar factura</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal ver factura -->
+  <dialog class="modal" id="inv-view" aria-labelledby="inv-view-title">
+    <div class="modal__body">
+      <div class="modal__head">
+        <h2 id="inv-view-title">Factura</h2>
+        <button class="icon-btn" type="button" data-close aria-label="Cerrar">✕</button>
+      </div>
+      <img class="inv-view__img" id="inv-view-img" alt="" />
+      <dl class="inv-view__meta" id="inv-view-meta"></dl>
+      <div class="modal__actions">
+        <button class="btn btn--ghost" type="button" id="inv-delete">🗑️ Eliminar</button>
+        <button class="btn btn--primary" type="button" data-close>Cerrar</button>
+      </div>
+    </div>
+  </dialog>
+
   <!-- Modal confirmación -->
   <dialog class="modal modal--sm" id="confirm-modal" aria-labelledby="confirm-title">
     <div class="modal__body">
@@ -232,6 +310,6 @@
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=dragon-1"></script>
+  <script src="app.js?v=dragon-2"></script>
 </body>
 </html>

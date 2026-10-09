@@ -12,6 +12,7 @@ Publicada en GitHub Pages: https://galeseim-beep.github.io/Prueba-code/
 - **DragónGPT**: asistente que responde usando las fichas registradas. Es una IA de demostración que funciona en local, sin enviar datos.
 - **4 categorías**: Modo hambre, Alertas de humo, Territorio y cueva, Tesoros y sobornos. Al tocarlas se filtra la lista.
 - **Fichas de entrenamiento**: alta con categoría, descripción, instrucciones para la IA, intensidad (1-5 🔥) y fecha; eliminación con confirmación.
+- **Facturas y gastos**: sube la foto de una factura (cámara o galería del iPhone), indica importe, concepto, fecha y categoría. Se contabilizan al momento: total, gasto del mes, número de facturas, importe medio y reparto por categoría. Toca una factura para ver la foto o eliminarla. **Exportar CSV** descarga el listado con el total (abre en Excel o Numbers). Las fotos se comprimen y se guardan en el navegador (IndexedDB).
 - **Botón del pánico**: genera un protocolo de emergencia a partir de las fichas.
 - **Restaurar dragón de ejemplo** desde el pie de página.
 
