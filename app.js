@@ -582,6 +582,7 @@
   });
 
   invForm.addEventListener('input', (e) => { e.target.classList.remove('invalid'); invError(''); });
+  $('btn-invoice-top').addEventListener('click', () => $('btn-invoice').click());
   $('f-photo').addEventListener('change', async () => {
     const file = $('f-photo').files[0];
     if (!file) return;

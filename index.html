@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=dragon-2" />
+  <link rel="stylesheet" href="styles.css?v=dragon-3" />
 </head>
 <body>
   <header class="topbar">
@@ -23,11 +23,14 @@
         </div>
       </div>
       <div class="topbar__actions">
+        <button class="btn btn--ghost btn--icon-sm" id="btn-invoice-top" type="button" title="Subir factura">
+          <span aria-hidden="true">📷</span><span class="hide-sm">Factura</span>
+        </button>
         <button class="btn btn--panic" id="btn-panic" type="button" title="Botón del pánico">
           <span aria-hidden="true">🚨</span><span class="hide-sm">Pánico</span>
         </button>
         <button class="btn btn--primary" id="btn-new" type="button">
-          <span aria-hidden="true">+</span> Nueva ficha
+          <span aria-hidden="true">+</span> <span class="hide-sm">Nueva</span> Ficha
         </button>
       </div>
     </div>
@@ -89,6 +92,26 @@
       </div>
     </section>
 
+    <!-- Facturas -->
+    <section class="card" id="invoices" aria-label="Facturas y gastos">
+      <div class="card__head">
+        <h2 class="card__title">🧾 Facturas y gastos</h2>
+        <div class="card__actions">
+          <button class="btn btn--ghost btn--sm" id="btn-csv" type="button">⬇️ Exportar CSV</button>
+          <button class="btn btn--primary btn--sm" id="btn-invoice" type="button">📷 Subir factura</button>
+        </div>
+      </div>
+      <div class="inv-kpis">
+        <div class="inv-kpi"><p class="kpi__label">Total gastado</p><p class="inv-kpi__value" id="inv-total">0 €</p></div>
+        <div class="inv-kpi"><p class="kpi__label">Este mes</p><p class="inv-kpi__value" id="inv-month">0 €</p></div>
+        <div class="inv-kpi"><p class="kpi__label">Facturas</p><p class="inv-kpi__value" id="inv-count">0</p></div>
+        <div class="inv-kpi"><p class="kpi__label">Importe medio</p><p class="inv-kpi__value" id="inv-avg">0 €</p></div>
+      </div>
+      <div class="inv-break" id="inv-break" aria-label="Gasto por categoría"></div>
+      <div class="inv-grid" id="inv-grid"></div>
+      <p class="empty" id="inv-empty" hidden>Aún no hay facturas. Pulsa <strong>Subir factura</strong> y hazle una foto al ticket.</p>
+    </section>
+
     <div class="grid-2">
       <!-- IA -->
       <section class="card ai" aria-label="DragónGPT">
@@ -116,25 +139,6 @@
       </section>
     </div>
 
-    <!-- Facturas -->
-    <section class="card" id="invoices" aria-label="Facturas y gastos">
-      <div class="card__head">
-        <h2 class="card__title">🧾 Facturas y gastos</h2>
-        <div class="card__actions">
-          <button class="btn btn--ghost btn--sm" id="btn-csv" type="button">⬇️ Exportar CSV</button>
-          <button class="btn btn--primary btn--sm" id="btn-invoice" type="button">📷 Subir factura</button>
-        </div>
-      </div>
-      <div class="inv-kpis">
-        <div class="inv-kpi"><p class="kpi__label">Total gastado</p><p class="inv-kpi__value" id="inv-total">0 €</p></div>
-        <div class="inv-kpi"><p class="kpi__label">Este mes</p><p class="inv-kpi__value" id="inv-month">0 €</p></div>
-        <div class="inv-kpi"><p class="kpi__label">Facturas</p><p class="inv-kpi__value" id="inv-count">0</p></div>
-        <div class="inv-kpi"><p class="kpi__label">Importe medio</p><p class="inv-kpi__value" id="inv-avg">0 €</p></div>
-      </div>
-      <div class="inv-break" id="inv-break" aria-label="Gasto por categoría"></div>
-      <div class="inv-grid" id="inv-grid"></div>
-      <p class="empty" id="inv-empty" hidden>Aún no hay facturas. Pulsa <strong>Subir factura</strong> y hazle una foto al ticket.</p>
-    </section>
 
     <!-- Fichas -->
     <section class="card" aria-label="Fichas de entrenamiento">
@@ -310,6 +314,6 @@
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="app.js?v=dragon-2"></script>
+  <script src="app.js?v=dragon-3"></script>
 </body>
 </html>

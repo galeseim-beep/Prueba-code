@@ -304,7 +304,7 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--n
   .brand__sub { display: none; }
   .hide-sm { display: none; }
   .btn { height: 38px; padding: 0 12px; }
-  .btn--panic { width: 38px; padding: 0; }
+  .btn--panic, .btn--icon-sm { width: 38px; padding: 0; }
   .profile { flex-wrap: wrap; gap: 12px; }
   .profile__avatar { width: 52px; height: 52px; font-size: 28px; }
   .profile__name { font-size: 22px; }
